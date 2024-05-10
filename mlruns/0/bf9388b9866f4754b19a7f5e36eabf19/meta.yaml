@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/bf9388b9866f4754b19a7f5e36eabf19/artifacts
+end_time: 1715199035706
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: bf9388b9866f4754b19a7f5e36eabf19
+run_name: silent-donkey-864
+run_uuid: bf9388b9866f4754b19a7f5e36eabf19
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715199019982
+status: 3
+tags: []
+user_id: yahoo4173

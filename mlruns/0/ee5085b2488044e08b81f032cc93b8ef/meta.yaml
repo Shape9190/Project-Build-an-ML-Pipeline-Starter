@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/ee5085b2488044e08b81f032cc93b8ef/artifacts
+end_time: 1715364949720
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ee5085b2488044e08b81f032cc93b8ef
+run_name: auspicious-koi-142
+run_uuid: ee5085b2488044e08b81f032cc93b8ef
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715364933347
+status: 4
+tags: []
+user_id: yahoo4173

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/ed7df15abf3c47fdb24c3c793742c3d2/artifacts
+end_time: 1715375816671
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ed7df15abf3c47fdb24c3c793742c3d2
+run_name: carefree-quail-600
+run_uuid: ed7df15abf3c47fdb24c3c793742c3d2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715375676112
+status: 3
+tags: []
+user_id: yahoo4173

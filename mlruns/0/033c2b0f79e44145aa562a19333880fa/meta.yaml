@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/033c2b0f79e44145aa562a19333880fa/artifacts
+end_time: 1715370988502
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 033c2b0f79e44145aa562a19333880fa
+run_name: delightful-chimp-795
+run_uuid: 033c2b0f79e44145aa562a19333880fa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715370863395
+status: 3
+tags: []
+user_id: yahoo4173

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/ff5395c7df454095a5a46a6879f97661/artifacts
+end_time: 1715214811656
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ff5395c7df454095a5a46a6879f97661
+run_name: abrasive-finch-313
+run_uuid: ff5395c7df454095a5a46a6879f97661
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715214802696
+status: 4
+tags: []
+user_id: yahoo4173

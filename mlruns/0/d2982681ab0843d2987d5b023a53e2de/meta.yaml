@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/d2982681ab0843d2987d5b023a53e2de/artifacts
+end_time: 1715374604835
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d2982681ab0843d2987d5b023a53e2de
+run_name: serious-jay-219
+run_uuid: d2982681ab0843d2987d5b023a53e2de
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715374442291
+status: 3
+tags: []
+user_id: yahoo4173

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/76516cc1265f41a8b0961441ebd10f8f/artifacts
+end_time: 1715217049561
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 76516cc1265f41a8b0961441ebd10f8f
+run_name: stately-bird-967
+run_uuid: 76516cc1265f41a8b0961441ebd10f8f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715217016244
+status: 3
+tags: []
+user_id: yahoo4173

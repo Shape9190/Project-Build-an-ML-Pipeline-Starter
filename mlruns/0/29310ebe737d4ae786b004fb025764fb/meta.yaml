@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/29310ebe737d4ae786b004fb025764fb/artifacts
+end_time: 1715371339676
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 29310ebe737d4ae786b004fb025764fb
+run_name: bouncy-hound-638
+run_uuid: 29310ebe737d4ae786b004fb025764fb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715371256208
+status: 3
+tags: []
+user_id: yahoo4173

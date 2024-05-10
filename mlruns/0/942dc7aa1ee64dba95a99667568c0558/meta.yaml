@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/942dc7aa1ee64dba95a99667568c0558/artifacts
+end_time: 1715285898326
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 942dc7aa1ee64dba95a99667568c0558
+run_name: skillful-newt-896
+run_uuid: 942dc7aa1ee64dba95a99667568c0558
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715285755334
+status: 4
+tags: []
+user_id: yahoo4173

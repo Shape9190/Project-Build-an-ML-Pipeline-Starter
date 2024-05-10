@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/c96c7663130e4b4189d58816ee82c713/artifacts
+end_time: 1715194395413
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c96c7663130e4b4189d58816ee82c713
+run_name: fun-rat-208
+run_uuid: c96c7663130e4b4189d58816ee82c713
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715194336222
+status: 3
+tags: []
+user_id: yahoo4173

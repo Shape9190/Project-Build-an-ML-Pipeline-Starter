@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/9e0f396e9b53490ba96d2e902f5a0496/artifacts
+end_time: 1715302671969
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 9e0f396e9b53490ba96d2e902f5a0496
+run_name: whimsical-squid-563
+run_uuid: 9e0f396e9b53490ba96d2e902f5a0496
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715302561503
+status: 3
+tags: []
+user_id: yahoo4173

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/95f19cad01a249468766e70afdaa612a/artifacts
+end_time: 1715371339832
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 95f19cad01a249468766e70afdaa612a
+run_name: industrious-bass-226
+run_uuid: 95f19cad01a249468766e70afdaa612a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715371254620
+status: 3
+tags: []
+user_id: yahoo4173

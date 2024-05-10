@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/7e15987fc7c543af837384b199331ad5/artifacts
+end_time: 1715295731205
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7e15987fc7c543af837384b199331ad5
+run_name: abundant-wasp-95
+run_uuid: 7e15987fc7c543af837384b199331ad5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715295658562
+status: 4
+tags: []
+user_id: yahoo4173

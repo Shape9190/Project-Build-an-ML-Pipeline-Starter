@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/5dce054483a047f1ae7407a69bcd870c/artifacts
+end_time: 1715374857731
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5dce054483a047f1ae7407a69bcd870c
+run_name: chill-elk-686
+run_uuid: 5dce054483a047f1ae7407a69bcd870c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715374734437
+status: 3
+tags: []
+user_id: yahoo4173

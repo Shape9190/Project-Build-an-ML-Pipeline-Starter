@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/1e031129ea514599b7032a1a4e1c7b4d/artifacts
+end_time: 1715375816846
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 1e031129ea514599b7032a1a4e1c7b4d
+run_name: vaunted-conch-653
+run_uuid: 1e031129ea514599b7032a1a4e1c7b4d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715375230701
+status: 3
+tags: []
+user_id: yahoo4173

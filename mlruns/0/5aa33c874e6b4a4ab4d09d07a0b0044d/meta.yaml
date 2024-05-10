@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/5aa33c874e6b4a4ab4d09d07a0b0044d/artifacts
+end_time: 1715295731440
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5aa33c874e6b4a4ab4d09d07a0b0044d
+run_name: nervous-trout-122
+run_uuid: 5aa33c874e6b4a4ab4d09d07a0b0044d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715295656552
+status: 4
+tags: []
+user_id: yahoo4173

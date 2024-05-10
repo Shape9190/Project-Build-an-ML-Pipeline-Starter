@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/9fdbac5d254a4ca0bd6fd2784e2f9214/artifacts
+end_time: 1715287983681
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 9fdbac5d254a4ca0bd6fd2784e2f9214
+run_name: polite-sheep-371
+run_uuid: 9fdbac5d254a4ca0bd6fd2784e2f9214
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715287901140
+status: 4
+tags: []
+user_id: yahoo4173

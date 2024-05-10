@@ -1,0 +1,1170 @@
+diff --git a/components/get_data/conda.yml b/components/get_data/conda.yml
+index eae3e2b..447eb6d 100644
+--- a/components/get_data/conda.yml
++++ b/components/get_data/conda.yml
+@@ -9,3 +9,4 @@ dependencies:
+   - pip:
+       - wandb==0.13.9
+       - git+https://github.com/udacity/Project-Build-an-ML-Pipeline-Starter.git#egg=wandb-utils&subdirectory=components
++      - databricks_cli==0.8.7
+diff --git a/components/test_regression_model/conda.yml b/components/test_regression_model/conda.yml
+index bb23402..a676380 100644
+--- a/components/test_regression_model/conda.yml
++++ b/components/test_regression_model/conda.yml
+@@ -10,3 +10,4 @@ dependencies:
+   - pip:
+       - wandb==0.13.9
+       - git+https://github.com/udacity/Project-Build-an-ML-Pipeline-Starter.git#egg=wandb-utils&subdirectory=components
++      - databricks_cli==0.8.7
+diff --git a/components/train_val_test_split/conda.yml b/components/train_val_test_split/conda.yml
+index 7fb5b93..13f835f 100644
+--- a/components/train_val_test_split/conda.yml
++++ b/components/train_val_test_split/conda.yml
+@@ -10,3 +10,4 @@ dependencies:
+   - pip:
+       - wandb==0.13.9
+       - git+https://github.com/udacity/Project-Build-an-ML-Pipeline-Starter.git#egg=wandb-utils&subdirectory=components
++      - databricks_cli==0.8.7
+diff --git a/conda.yml b/conda.yml
+index e8f87fa..5988b93 100644
+--- a/conda.yml
++++ b/conda.yml
+@@ -8,4 +8,5 @@ dependencies:
+   - hydra-core=1.0.6
+   - pip=20.3.3
+   - pip:
+-      - wandb==0.13.9
+\ No newline at end of file
++      - wandb==0.13.9
++      - databricks_cli==0.8.7
+\ No newline at end of file
+diff --git a/config.yaml b/config.yaml
+index a9f3a4b..80d0c30 100644
+--- a/config.yaml
++++ b/config.yaml
+@@ -2,7 +2,7 @@ main:
+   components_repository: "https://github.com/udacity/Project-Build-an-ML-Pipeline-Starter.git#components"
+   # All the intermediate files will be copied to this directory at the end of the run.
+   # Set this to null if you are running in prod
+-  project_name: nyc_airbnb
++  project_name: nyc_airbnb_1
+   experiment_name: development
+   steps: all
+ etl:
+diff --git a/main.py b/main.py
+index 9abc5bb..7a6338d 100644
+--- a/main.py
++++ b/main.py
+@@ -49,23 +49,49 @@ def go(config: DictConfig):
+             )
+ 
+         if "basic_cleaning" in active_steps:
+-            ##################
+-            # Implement here #
+-            ##################
+-            pass
++            """
++            clean and process data
++            """
++            _ = mlflow.run(
++                os.path.join(hydra.utils.get_original_cwd(), "src", "basic_cleaning"),
++                "main",
++                parameters={
++                    "input_artifact": "sample.csv:latest",
++                    "output_artifact": "clean_sample.csv",
++                    "output_type": "clean_sample",
++                    "output_description": "Data with outliers and null values removed",
++                    "min_price": config['etl']['min_price'],
++                    "max_price": config['etl']['max_price']
++                },
++            )
+ 
+         if "data_check" in active_steps:
+-            ##################
+-            # Implement here #
+-            ##################
+-            pass
++            """
++            testing data
++            """
++            _ = mlflow.run(
++                os.path.join(hydra.utils.get_original_cwd(), "src", "data_check"),
++                "main",
++                parameters={
++                    "csv": "clean_sample.csv:latest",
++                    "ref": "clean_sample.csv:reference",
++                    "kl_threshold": config['data_check']["kl_threshold"],
++                    "min_price": config['etl']['min_price'],
++                    "max_price": config['etl']['max_price'],
++                },
++            )
+ 
+         if "data_split" in active_steps:
+-            ##################
+-            # Implement here #
+-            ##################
+-            pass
+-
++            _ = mlflow.run(
++                f"{config['main']['components_repository']}/train_val_test_split",
++                'main',
++                parameters = {
++                    "input": "clean_sample.csv:latest",
++                    "test_size": config["modeling"]["test_size"],
++                    "random_seed": config["modeling"]["random_seed"],
++                    "stratify_by": config["modeling"]["stratify_by"],
++                },
++            )
+         if "train_random_forest" in active_steps:
+ 
+             # NOTE: we need to serialize the random forest configuration into JSON
+@@ -75,21 +101,31 @@ def go(config: DictConfig):
+ 
+             # NOTE: use the rf_config we just created as the rf_config parameter for the train_random_forest
+             # step
+-
+-            ##################
+-            # Implement here #
+-            ##################
+-
+-            pass
++            _ = mlflow.run(
++                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest"),
++                "main",
++                parameters={
++                    "trainval_artifact": "trainval_data.csv:latest",
++                    "val_size": config["modeling"]["val_size"],
++                    "random_seed": config["modeling"]["random_seed"],
++                    "stratify_by": config['modeling']['stratify_by'],
++                    "rf_config": rf_config,
++                    "max_tfidf_features": config['modeling']['max_tfidf_features'],
++                    "output_artifact": "random_forest_export",
++                },
++            )
++            
+ 
+         if "test_regression_model" in active_steps:
+-
+-            ##################
+-            # Implement here #
+-            ##################
+-
+-            pass
+-
++            #Test the model
++            _ = mlflow.run(
++                f"{config['main']['components_repository']}/test_regression_model",
++                'main',
++                    parameters = {
++                        "mlflow_model": "random_forest_export:prod",
++                        "test_dataset": "test_data.csv:latest",
++                },
++            )
+ 
+ if __name__ == "__main__":
+     go()
+diff --git a/src/basic_cleaning/conda.yml b/src/basic_cleaning/conda.yml
+index f35e98c..e108c0d 100644
+--- a/src/basic_cleaning/conda.yml
++++ b/src/basic_cleaning/conda.yml
+@@ -7,3 +7,4 @@ dependencies:
+   - pandas=1.2.3
+   - pip:
+       - wandb==0.13.9
++      - databricks_cli==0.8.7
+diff --git a/src/basic_cleaning/run.py b/src/basic_cleaning/run.py
+index b496452..90c9b1c 100644
+--- a/src/basic_cleaning/run.py
++++ b/src/basic_cleaning/run.py
+@@ -7,6 +7,8 @@ import logging
+ import wandb
+ import pandas as pd
+ 
++import os
++
+ # DO NOT MODIFY
+ logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+ logger = logging.getLogger()
+@@ -33,6 +35,7 @@ def go(args):
+     df = df[idx].copy()
+     df['last_review'] = pd.to_datetime(df['last_review'])
+     # TODO: add code to fix the issue happened when testing the model
++
+     
+ 
+     # Save the cleaned data
+@@ -50,48 +53,50 @@ def go(args):
+ # TODO: In the code below, fill in a description for each argument. The description should be a string.
+ if __name__ == "__main__":
+ 
+-    parser = argparse.ArgumentParser(description="A very basic data cleaning")
++    parser = argparse.ArgumentParser(
++        description="A very basic data cleaning",
++    )
+   
+     parser.add_argument(
+         "--input_artifact", 
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = str,
++        help = "the input artifact",
++        required = True,
+     )
+ 
+     parser.add_argument(
+         "--output_artifact", 
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = str,
++        help = "the name for the output artifact",
++        required = True,
+     )
+ 
+     parser.add_argument(
+         "--output_type", 
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = str,
++        help = "the type for the output artifact",
++        required = True,
+     )
+ 
+     parser.add_argument(
+         "--output_description", 
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = str,
++        help = "a description of the output artifact",
++        required = True,
+     )
+ 
+     parser.add_argument(
+         "--min_price", 
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = float,
++        help = "the minimum price to consider",
++        required = True,
+     )
+ 
+     parser.add_argument(
+         "--max_price",
+-        type = ## INSERT TYPE HERE: str, float or int,
+-        help = ## INSERT DESCRIPTION HERE,
+-        required = True
++        type = float,
++        help = "the maximum price to consider",
++        required = True,
+     )
+ 
+ 
+diff --git a/src/data_check/conda.yml b/src/data_check/conda.yml
+index aa581fb..24d285d 100644
+--- a/src/data_check/conda.yml
++++ b/src/data_check/conda.yml
+@@ -9,3 +9,4 @@ dependencies:
+   - pip=20.3.3
+   - pip:
+       - wandb==0.13.9
++      - databricks_cli==0.8.7
+diff --git a/src/data_check/test_data.py b/src/data_check/test_data.py
+index 6ed3ec6..8101c08 100644
+--- a/src/data_check/test_data.py
++++ b/src/data_check/test_data.py
+@@ -60,6 +60,15 @@ def test_similar_neigh_distrib(data: pd.DataFrame, ref_data: pd.DataFrame, kl_th
+     assert scipy.stats.entropy(dist1, dist2, base=2) < kl_threshold
+ 
+ 
+-########################################################
+-# Implement here test_row_count and test_price_range   #
+-########################################################
++def test_row_count(data):
++    """
++    Check that the size of dataset is not too small or too large
++    """
++    assert 15000 < data.shape[0] < 1000000
++
++def test_price_range(data, min_price, max_price):
++    """
++    Check that the price range is between min_price and max_price
++    """
++    assert data['price'].dropna().between(min_price, max_price).all()
++  
+diff --git a/src/eda/eda.ipynb b/src/eda/eda.ipynb
+index 06abc38..f9fdbcf 100644
+--- a/src/eda/eda.ipynb
++++ b/src/eda/eda.ipynb
+@@ -2,8 +2,8 @@
+  "cells": [
+   {
+    "cell_type": "code",
+-   "execution_count": 6,
+-   "id": "1f72a955",
++   "execution_count": 1,
++   "id": "f37a0a98",
+    "metadata": {
+     "scrolled": true,
+     "tags": []
+@@ -13,72 +13,72 @@
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "Requirement already satisfied: wandb==0.13.9 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (0.13.9)\n",
+-      "Requirement already satisfied: setproctitle in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (1.3.2)\n",
+-      "Requirement already satisfied: protobuf!=4.21.0,<5,>=3.19.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (4.21.12)\n",
+-      "Requirement already satisfied: docker-pycreds>=0.4.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (0.4.0)\n",
+-      "Requirement already satisfied: setuptools in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (59.8.0)\n",
+-      "Requirement already satisfied: pathtools in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (0.1.2)\n",
+-      "Requirement already satisfied: Click!=8.0.0,>=7.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (8.1.3)\n",
+-      "Requirement already satisfied: GitPython>=1.0.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (3.1.31)\n",
+-      "Requirement already satisfied: appdirs>=1.4.3 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (1.4.4)\n",
+-      "Requirement already satisfied: requests<3,>=2.0.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (2.28.2)\n",
+-      "Requirement already satisfied: typing-extensions in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (4.5.0)\n",
+-      "Requirement already satisfied: PyYAML in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (6.0)\n",
+-      "Requirement already satisfied: sentry-sdk>=1.0.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (1.19.1)\n",
+-      "Requirement already satisfied: psutil>=5.0.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (5.9.4)\n",
+-      "Requirement already satisfied: six>=1.4.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from docker-pycreds>=0.4.0->wandb==0.13.9) (1.16.0)\n",
+-      "Requirement already satisfied: gitdb<5,>=4.0.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from GitPython>=1.0.0->wandb==0.13.9) (4.0.10)\n",
+-      "Requirement already satisfied: smmap<6,>=3.0.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from gitdb<5,>=4.0.1->GitPython>=1.0.0->wandb==0.13.9) (3.0.5)\n",
+-      "Requirement already satisfied: idna<4,>=2.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (3.4)\n",
+-      "Requirement already satisfied: urllib3<1.27,>=1.21.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (1.26.15)\n",
+-      "Requirement already satisfied: charset-normalizer<4,>=2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (3.1.0)\n",
+-      "Requirement already satisfied: certifi>=2017.4.17 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (2022.12.7)\n",
+-      "Requirement already satisfied: pandas-profiling==3.6.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (3.6.2)\n",
+-      "Requirement already satisfied: multimethod<1.10,>=1.4 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.9.1)\n",
+-      "Requirement already satisfied: jinja2<3.2,>=2.11.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.11.3)\n",
+-      "Requirement already satisfied: matplotlib<3.7,>=3.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (3.6.2)\n",
+-      "Requirement already satisfied: scipy<1.10,>=1.4.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.9.3)\n",
+-      "Requirement already satisfied: htmlmin==0.1.12 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.1.12)\n",
+-      "Requirement already satisfied: requests<2.29,>=2.24.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.28.2)\n",
+-      "Requirement already satisfied: numpy<1.24,>=1.16.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.23.5)\n",
+-      "Requirement already satisfied: seaborn<0.13,>=0.10.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.11.1)\n",
+-      "Requirement already satisfied: statsmodels<0.14,>=0.13.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.13.5)\n",
+-      "Requirement already satisfied: pydantic<1.11,>=1.8.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.10.7)\n",
+-      "Requirement already satisfied: pandas!=1.4.0,<1.6,>1.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.2.3)\n",
+-      "Requirement already satisfied: phik<0.13,>=0.11.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.12.3)\n",
+-      "Requirement already satisfied: typeguard<2.14,>=2.13.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.13.3)\n",
+-      "Requirement already satisfied: PyYAML<6.1,>=5.0.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (6.0)\n",
+-      "Requirement already satisfied: visions[type_image_path]==0.7.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.7.5)\n",
+-      "Requirement already satisfied: tqdm<4.65,>=4.48.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (4.64.1)\n",
+-      "Requirement already satisfied: attrs>=19.3.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (22.2.0)\n",
+-      "Requirement already satisfied: networkx>=2.4 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (3.1)\n",
+-      "Requirement already satisfied: tangled-up-in-unicode>=0.0.4 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (0.2.0)\n",
+-      "Requirement already satisfied: Pillow in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (9.5.0)\n",
+-      "Requirement already satisfied: imagehash in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (4.3.1)\n",
+-      "Requirement already satisfied: MarkupSafe>=0.23 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from jinja2<3.2,>=2.11.1->pandas-profiling==3.6.2) (1.1.1)\n",
+-      "Requirement already satisfied: pyparsing>=2.2.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (3.0.9)\n",
+-      "Requirement already satisfied: python-dateutil>=2.7 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (2.8.2)\n",
+-      "Requirement already satisfied: contourpy>=1.0.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.0.7)\n",
+-      "Requirement already satisfied: packaging>=20.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (22.0)\n",
+-      "Requirement already satisfied: kiwisolver>=1.0.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.4.4)\n",
+-      "Requirement already satisfied: fonttools>=4.22.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (4.39.3)\n",
+-      "Requirement already satisfied: cycler>=0.10 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (0.11.0)\n",
+-      "Requirement already satisfied: pytz>=2017.3 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas!=1.4.0,<1.6,>1.1->pandas-profiling==3.6.2) (2022.7.1)\n",
+-      "Requirement already satisfied: joblib>=0.14.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from phik<0.13,>=0.11.1->pandas-profiling==3.6.2) (1.2.0)\n",
+-      "Requirement already satisfied: typing-extensions>=4.2.0 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pydantic<1.11,>=1.8.1->pandas-profiling==3.6.2) (4.5.0)\n",
+-      "Requirement already satisfied: six>=1.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from python-dateutil>=2.7->matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.16.0)\n",
+-      "Requirement already satisfied: certifi>=2017.4.17 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (2022.12.7)\n",
+-      "Requirement already satisfied: urllib3<1.27,>=1.21.1 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (1.26.15)\n",
+-      "Requirement already satisfied: charset-normalizer<4,>=2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (3.1.0)\n",
+-      "Requirement already satisfied: idna<4,>=2.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (3.4)\n",
+-      "Requirement already satisfied: patsy>=0.5.2 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from statsmodels<0.14,>=0.13.2->pandas-profiling==3.6.2) (0.5.3)\n",
+-      "Requirement already satisfied: PyWavelets in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from imagehash->visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (1.4.1)\n",
+-      "Requirement already satisfied: pandas==1.2.3 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (1.2.3)\n",
+-      "Requirement already satisfied: python-dateutil>=2.7.3 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (2.8.2)\n",
+-      "Requirement already satisfied: pytz>=2017.3 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (2022.7.1)\n",
+-      "Requirement already satisfied: numpy>=1.16.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (1.23.5)\n",
+-      "Requirement already satisfied: six>=1.5 in /opt/anaconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from python-dateutil>=2.7.3->pandas==1.2.3) (1.16.0)\n"
++      "Requirement already satisfied: wandb==0.13.9 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (0.13.9)\n",
++      "Requirement already satisfied: psutil>=5.0.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (5.9.8)\n",
++      "Requirement already satisfied: appdirs>=1.4.3 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (1.4.4)\n",
++      "Requirement already satisfied: sentry-sdk>=1.0.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (2.1.1)\n",
++      "Requirement already satisfied: pathtools in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (0.1.2)\n",
++      "Requirement already satisfied: setproctitle in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (1.3.3)\n",
++      "Requirement already satisfied: requests<3,>=2.0.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (2.28.2)\n",
++      "Requirement already satisfied: GitPython>=1.0.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (3.1.43)\n",
++      "Requirement already satisfied: setuptools in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (59.8.0)\n",
++      "Requirement already satisfied: protobuf!=4.21.0,<5,>=3.15.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (4.21.12)\n",
++      "Requirement already satisfied: Click!=8.0.0,>=7.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (8.1.7)\n",
++      "Requirement already satisfied: docker-pycreds>=0.4.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (0.4.0)\n",
++      "Requirement already satisfied: PyYAML in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (6.0.1)\n",
++      "Requirement already satisfied: typing-extensions in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from wandb==0.13.9) (4.11.0)\n",
++      "Requirement already satisfied: six>=1.4.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from docker-pycreds>=0.4.0->wandb==0.13.9) (1.16.0)\n",
++      "Requirement already satisfied: gitdb<5,>=4.0.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from GitPython>=1.0.0->wandb==0.13.9) (4.0.11)\n",
++      "Requirement already satisfied: smmap<6,>=3.0.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from gitdb<5,>=4.0.1->GitPython>=1.0.0->wandb==0.13.9) (5.0.0)\n",
++      "Requirement already satisfied: charset-normalizer<4,>=2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (3.3.2)\n",
++      "Requirement already satisfied: urllib3<1.27,>=1.21.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (1.26.18)\n",
++      "Requirement already satisfied: certifi>=2017.4.17 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (2024.2.2)\n",
++      "Requirement already satisfied: idna<4,>=2.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<3,>=2.0.0->wandb==0.13.9) (3.7)\n",
++      "Requirement already satisfied: pandas-profiling==3.6.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (3.6.2)\n",
++      "Requirement already satisfied: typeguard<2.14,>=2.13.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.13.3)\n",
++      "Requirement already satisfied: pandas!=1.4.0,<1.6,>1.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.2.3)\n",
++      "Requirement already satisfied: matplotlib<3.7,>=3.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (3.6.2)\n",
++      "Requirement already satisfied: visions[type_image_path]==0.7.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.7.5)\n",
++      "Requirement already satisfied: statsmodels<0.14,>=0.13.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.13.5)\n",
++      "Requirement already satisfied: htmlmin==0.1.12 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.1.12)\n",
++      "Requirement already satisfied: jinja2<3.2,>=2.11.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.11.3)\n",
++      "Requirement already satisfied: numpy<1.24,>=1.16.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.23.5)\n",
++      "Requirement already satisfied: PyYAML<6.1,>=5.0.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (6.0.1)\n",
++      "Requirement already satisfied: requests<2.29,>=2.24.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (2.28.2)\n",
++      "Requirement already satisfied: scipy<1.10,>=1.4.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.9.3)\n",
++      "Requirement already satisfied: seaborn<0.13,>=0.10.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.12.2)\n",
++      "Requirement already satisfied: pydantic<1.11,>=1.8.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.10.15)\n",
++      "Requirement already satisfied: tqdm<4.65,>=4.48.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (4.64.1)\n",
++      "Requirement already satisfied: multimethod<1.10,>=1.4 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (1.9.1)\n",
++      "Requirement already satisfied: phik<0.13,>=0.11.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas-profiling==3.6.2) (0.12.4)\n",
++      "Requirement already satisfied: attrs>=19.3.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (23.2.0)\n",
++      "Requirement already satisfied: tangled-up-in-unicode>=0.0.4 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (0.2.0)\n",
++      "Requirement already satisfied: networkx>=2.4 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (3.2.1)\n",
++      "Requirement already satisfied: imagehash in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (4.3.1)\n",
++      "Requirement already satisfied: Pillow in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (9.4.0)\n",
++      "Requirement already satisfied: MarkupSafe>=0.23 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from jinja2<3.2,>=2.11.1->pandas-profiling==3.6.2) (1.1.1)\n",
++      "Requirement already satisfied: kiwisolver>=1.0.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.4.5)\n",
++      "Requirement already satisfied: contourpy>=1.0.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.2.1)\n",
++      "Requirement already satisfied: pyparsing>=2.2.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (3.1.2)\n",
++      "Requirement already satisfied: cycler>=0.10 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (0.12.1)\n",
++      "Requirement already satisfied: packaging>=20.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (22.0)\n",
++      "Requirement already satisfied: fonttools>=4.22.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (4.51.0)\n",
++      "Requirement already satisfied: python-dateutil>=2.7 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (2.9.0)\n",
++      "Requirement already satisfied: pytz>=2017.3 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas!=1.4.0,<1.6,>1.1->pandas-profiling==3.6.2) (2022.7.1)\n",
++      "Requirement already satisfied: joblib>=0.14.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from phik<0.13,>=0.11.1->pandas-profiling==3.6.2) (1.4.2)\n",
++      "Requirement already satisfied: typing-extensions>=4.2.0 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pydantic<1.11,>=1.8.1->pandas-profiling==3.6.2) (4.11.0)\n",
++      "Requirement already satisfied: six>=1.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from python-dateutil>=2.7->matplotlib<3.7,>=3.2->pandas-profiling==3.6.2) (1.16.0)\n",
++      "Requirement already satisfied: charset-normalizer<4,>=2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (3.3.2)\n",
++      "Requirement already satisfied: urllib3<1.27,>=1.21.1 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (1.26.18)\n",
++      "Requirement already satisfied: idna<4,>=2.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (3.7)\n",
++      "Requirement already satisfied: certifi>=2017.4.17 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from requests<2.29,>=2.24.0->pandas-profiling==3.6.2) (2024.2.2)\n",
++      "Requirement already satisfied: patsy>=0.5.2 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from statsmodels<0.14,>=0.13.2->pandas-profiling==3.6.2) (0.5.6)\n",
++      "Requirement already satisfied: PyWavelets in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from imagehash->visions[type_image_path]==0.7.5->pandas-profiling==3.6.2) (1.6.0)\n",
++      "Requirement already satisfied: pandas==1.2.3 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (1.2.3)\n",
++      "Requirement already satisfied: python-dateutil>=2.7.3 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (2.9.0)\n",
++      "Requirement already satisfied: pytz>=2017.3 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (2022.7.1)\n",
++      "Requirement already satisfied: numpy>=1.16.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from pandas==1.2.3) (1.23.5)\n",
++      "Requirement already satisfied: six>=1.5 in /home/yahoo4173/miniconda3/envs/nyc_airbnb_dev/lib/python3.9/site-packages (from python-dateutil>=2.7.3->pandas==1.2.3) (1.16.0)\n"
+      ]
+     }
+    ],
+@@ -90,7 +90,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "54c4f98a",
++   "id": "29278bc9",
+    "metadata": {},
+    "source": [
+     "1. Fetch the artifact we just created (sample.csv) from W&B and read it with pandas:"
+@@ -98,64 +98,22 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 7,
+-   "id": "eed98c34",
++   "execution_count": 2,
++   "id": "f1107664",
+    "metadata": {},
+    "outputs": [
+     {
+-     "data": {
+-      "text/html": [
+-       "Finishing last run (ID:v3d3q3rf) before initializing another..."
+-      ],
+-      "text/plain": [
+-       "<IPython.core.display.HTML object>"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
+-    },
+-    {
+-     "data": {
+-      "text/html": [
+-       "Waiting for W&B process to finish... <strong style=\"color:green\">(success).</strong>"
+-      ],
+-      "text/plain": [
+-       "<IPython.core.display.HTML object>"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
+-    },
+-    {
+-     "data": {
+-      "application/vnd.jupyter.widget-view+json": {
+-       "model_id": "a37b04273ead4a168e477c0394de3fcf",
+-       "version_major": 2,
+-       "version_minor": 0
+-      },
+-      "text/plain": [
+-       "VBox(children=(Label(value='0.043 MB of 0.043 MB uploaded (0.000 MB deduped)\\r'), FloatProgress(value=1.0, max…"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
+-    },
+-    {
+-     "data": {
+-      "text/html": [
+-       " View run <strong style=\"color:#cdcd00\">visionary-lake-13</strong> at: <a href=\"https://wandb.ai/annyang1963/nyc_airbnb/runs/v3d3q3rf\" target=\"_blank\">https://wandb.ai/annyang1963/nyc_airbnb/runs/v3d3q3rf</a><br/>Synced 7 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)"
+-      ],
+-      "text/plain": [
+-       "<IPython.core.display.HTML object>"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "\u001b[34m\u001b[1mwandb\u001b[0m: Currently logged in as: \u001b[33mscramble\u001b[0m (\u001b[33mwavywave\u001b[0m). Use \u001b[1m`wandb login --relogin`\u001b[0m to force relogin\n"
++     ]
+     },
+     {
+      "data": {
+       "text/html": [
+-       "Find logs at: <code>./wandb/run-20230412_183324-v3d3q3rf/logs</code>"
++       "wandb version 0.17.0 is available!  To upgrade, please run:\n",
++       " $ pip install wandb --upgrade"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -167,7 +125,7 @@
+     {
+      "data": {
+       "text/html": [
+-       "Successfully finished last run (ID:v3d3q3rf). Initializing new run:<br/>"
++       "Tracking run with wandb version 0.13.9"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -176,25 +134,10 @@
+      "metadata": {},
+      "output_type": "display_data"
+     },
+-    {
+-     "data": {
+-      "application/vnd.jupyter.widget-view+json": {
+-       "model_id": "110e5eb88c9f4f9bada3b547c8cd62eb",
+-       "version_major": 2,
+-       "version_minor": 0
+-      },
+-      "text/plain": [
+-       "VBox(children=(Label(value='Waiting for wandb.init()...\\r'), FloatProgress(value=0.016671707533333326, max=1.0…"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
+-    },
+     {
+      "data": {
+       "text/html": [
+-       "wandb version 0.14.2 is available!  To upgrade, please run:\n",
+-       " $ pip install wandb --upgrade"
++       "Run data is saved locally in <code>/home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/src/eda/wandb/run-20240508_122934-wlaassk8</code>"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -206,7 +149,7 @@
+     {
+      "data": {
+       "text/html": [
+-       "Tracking run with wandb version 0.13.9"
++       "Syncing run <strong><a href=\"https://wandb.ai/wavywave/nyc_airbnb/runs/wlaassk8\" target=\"_blank\">pious-thunder-5</a></strong> to <a href=\"https://wandb.ai/wavywave/nyc_airbnb\" target=\"_blank\">Weights & Biases</a> (<a href=\"https://wandb.me/run\" target=\"_blank\">docs</a>)<br/>"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -218,7 +161,7 @@
+     {
+      "data": {
+       "text/html": [
+-       "Run data is saved locally in <code>/Users/hyang/Huimin project/Project-Build-an-ML-Pipeline-Starter/src/eda/wandb/run-20230412_183404-cl95qrqk</code>"
++       " View project at <a href=\"https://wandb.ai/wavywave/nyc_airbnb\" target=\"_blank\">https://wandb.ai/wavywave/nyc_airbnb</a>"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -230,7 +173,7 @@
+     {
+      "data": {
+       "text/html": [
+-       "Syncing run <strong><a href=\"https://wandb.ai/annyang1963/nyc_airbnb/runs/cl95qrqk\" target=\"_blank\">summer-galaxy-14</a></strong> to <a href=\"https://wandb.ai/annyang1963/nyc_airbnb\" target=\"_blank\">Weights & Biases</a> (<a href=\"https://wandb.me/run\" target=\"_blank\">docs</a>)<br/>"
++       " View run at <a href=\"https://wandb.ai/wavywave/nyc_airbnb/runs/wlaassk8\" target=\"_blank\">https://wandb.ai/wavywave/nyc_airbnb/runs/wlaassk8</a>"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -240,28 +183,23 @@
+      "output_type": "display_data"
+     },
+     {
+-     "data": {
+-      "text/html": [
+-       " View project at <a href=\"https://wandb.ai/annyang1963/nyc_airbnb\" target=\"_blank\">https://wandb.ai/annyang1963/nyc_airbnb</a>"
+-      ],
+-      "text/plain": [
+-       "<IPython.core.display.HTML object>"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f79c0132eb0, execution_count=2 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f79c0132fa0, raw_cell=\"import wandb\n",
++      "import pandas as pd\n",
++      "# Note that we us..\" store_history=True silent=False shell_futures=True cell_id=23a80931-0879-4ccc-bb15-62ccaf34325f> result=None>,),kwargs {}:\n"
++     ]
+     },
+     {
+-     "data": {
+-      "text/html": [
+-       " View run at <a href=\"https://wandb.ai/annyang1963/nyc_airbnb/runs/cl95qrqk\" target=\"_blank\">https://wandb.ai/annyang1963/nyc_airbnb/runs/cl95qrqk</a>"
+-      ],
+-      "text/plain": [
+-       "<IPython.core.display.HTML object>"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
++     ]
+     }
+    ],
+    "source": [
+@@ -275,7 +213,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "472b8c0d",
++   "id": "900616e7",
+    "metadata": {},
+    "source": [
+     "2. Explore the data in df"
+@@ -283,10 +221,27 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 8,
+-   "id": "e7902159",
++   "execution_count": 3,
++   "id": "139c7c50",
+    "metadata": {},
+    "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f798ce4be50, raw_cell=\"df.info()\" store_history=True silent=False shell_futures=True cell_id=5f887f49-af27-48e4-b0a1-01699c44f180>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+@@ -313,7 +268,18 @@
+       " 14  calculated_host_listings_count  20000 non-null  int64  \n",
+       " 15  availability_365                20000 non-null  int64  \n",
+       "dtypes: float64(3), int64(7), object(6)\n",
+-      "memory usage: 2.4+ MB\n"
++      "memory usage: 2.4+ MB\n",
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f798ce4bf70, execution_count=3 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f798ce4be50, raw_cell=\"df.info()\" store_history=True silent=False shell_futures=True cell_id=5f887f49-af27-48e4-b0a1-01699c44f180> result=None>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
+      ]
+     }
+    ],
+@@ -323,10 +289,27 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 9,
+-   "id": "ef6f1457",
++   "execution_count": 4,
++   "id": "82f26f6a",
+    "metadata": {},
+    "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f798ce4b070, raw_cell=\"df.describe()\" store_history=True silent=False shell_futures=True cell_id=854f27c8-af6b-44e1-92bb-b57cd5a1ad9c>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
+     {
+      "data": {
+       "text/html": [
+@@ -501,9 +484,54 @@
+        "max                        327.000000        365.000000  "
+       ]
+      },
+-     "execution_count": 9,
++     "execution_count": 4,
+      "metadata": {},
+      "output_type": "execute_result"
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f798ce4be80, execution_count=4 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f798ce4b070, raw_cell=\"df.describe()\" store_history=True silent=False shell_futures=True cell_id=854f27c8-af6b-44e1-92bb-b57cd5a1ad9c> result=                 id       host_id      latitude     longitude         price  \\\n",
++      "count  2.000000e+04  2.000000e+04  20000.000000  20000.000000  20000.000000   \n",
++      "mean   1.892380e+07  6.746034e+07     40.728455    -73.952125    153.269050   \n",
++      "std    1.101223e+07  7.857936e+07      0.054755      0.046559    243.325609   \n",
++      "min    2.539000e+03  2.571000e+03     40.508730    -74.239140      0.000000   \n",
++      "25%    9.393540e+06  7.853718e+06     40.689420    -73.983030     69.000000   \n",
++      "50%    1.952117e+07  3.111431e+07     40.722730    -73.955640    105.000000   \n",
++      "75%    2.912936e+07  1.068426e+08     40.762990    -73.936380    175.000000   \n",
++      "max    3.648561e+07  2.742733e+08     40.913060    -73.717950  10000.000000   \n",
++      "\n",
++      "       minimum_nights  number_of_reviews  reviews_per_month  \\\n",
++      "count    20000.000000       20000.000000       15877.000000   \n",
++      "mean         6.992100          23.274100           1.377446   \n",
++      "std         21.645449          44.927793           1.683006   \n",
++      "min          1.000000           0.000000           0.010000   \n",
++      "25%          1.000000           1.000000           0.190000   \n",
++      "50%          2.000000           5.000000           0.720000   \n",
++      "75%          5.000000          23.000000           2.010000   \n",
++      "max       1250.000000         607.000000          27.950000   \n",
++      "\n",
++      "       calculated_host_listings_count  availability_365  \n",
++      "count                    20000.000000      20000.000000  \n",
++      "mean                         6.955450        112.901200  \n",
++      "std                         32.433831        131.762226  \n",
++      "min                          1.000000          0.000000  \n",
++      "25%                          1.000000          0.000000  \n",
++      "50%                          1.000000         44.000000  \n",
++      "75%                          2.000000        229.000000  \n",
++      "max                        327.000000        365.000000  >,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
++     ]
+     }
+    ],
+    "source": [
+@@ -512,10 +540,27 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 10,
+-   "id": "13548f59",
++   "execution_count": 5,
++   "id": "1d654bd0",
+    "metadata": {},
+    "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f798ceb6400, raw_cell=\"df.head()\" store_history=True silent=False shell_futures=True cell_id=5fa55aad-77e2-4784-b6ea-539a86de4ce8>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
+     {
+      "data": {
+       "text/html": [
+@@ -685,9 +730,52 @@
+        "4               0.52                               2                 8  "
+       ]
+      },
+-     "execution_count": 10,
++     "execution_count": 5,
+      "metadata": {},
+      "output_type": "execute_result"
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f798ceb6340, execution_count=5 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f798ceb6400, raw_cell=\"df.head()\" store_history=True silent=False shell_futures=True cell_id=5fa55aad-77e2-4784-b6ea-539a86de4ce8> result=         id                                               name    host_id  \\\n",
++      "0   9138664                Private Lg Room 15 min to Manhattan   47594947   \n",
++      "1  31444015  TIME SQUARE CHARMING ONE BED IN HELL'S KITCHEN...    8523790   \n",
++      "2   8741020  Voted #1 Location Quintessential 1BR W Village...   45854238   \n",
++      "3  34602077  Spacious 1 bedroom apartment 15min from Manhattan  261055465   \n",
++      "4  23203149   Big beautiful bedroom in huge Bushwick apartment     143460   \n",
++      "\n",
++      "  host_name neighbourhood_group   neighbourhood  latitude  longitude  \\\n",
++      "0      Iris              Queens       Sunnyside  40.74271  -73.92493   \n",
++      "1    Johlex           Manhattan  Hell's Kitchen  40.76682  -73.98878   \n",
++      "2      John           Manhattan    West Village  40.73631  -74.00611   \n",
++      "3     Regan              Queens         Astoria  40.76424  -73.92351   \n",
++      "4     Megan            Brooklyn        Bushwick  40.69839  -73.92044   \n",
++      "\n",
++      "         room_type  price  minimum_nights  number_of_reviews last_review  \\\n",
++      "0     Private room     74               2                  6  2019-05-26   \n",
++      "1  Entire home/apt    170               3                  0         NaN   \n",
++      "2  Entire home/apt    245               3                 51  2018-09-19   \n",
++      "3  Entire home/apt    125               3                  1  2019-05-24   \n",
++      "4     Private room     65               2                  8  2019-06-23   \n",
++      "\n",
++      "   reviews_per_month  calculated_host_listings_count  availability_365  \n",
++      "0               0.13                               1                 5  \n",
++      "1                NaN                               1               188  \n",
++      "2               1.12                               1                 0  \n",
++      "3               0.65                               1                13  \n",
++      "4               0.52                               2                 8  >,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
++     ]
+     }
+    ],
+    "source": [
+@@ -696,7 +784,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "ecfee692",
++   "id": "dbab593e",
+    "metadata": {},
+    "source": [
+     "3. What do you notice in the data? Look around and see what you can find.\n",
+@@ -706,7 +794,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "b4bb415f",
++   "id": "8da0d839",
+    "metadata": {},
+    "source": [
+     "4. Fix some of the little problems we have found in the data with the following code:"
+@@ -714,10 +802,51 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 11,
+-   "id": "4d685317",
++   "execution_count": 6,
++   "id": "048cefbf",
+    "metadata": {},
+-   "outputs": [],
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f798ceb6790, raw_cell=\"# Drop outliers\n",
++      "min_price = 10\n",
++      "max_price = 350\n",
++      "idx..\" store_history=True silent=False shell_futures=True cell_id=c57054c7-72d5-471a-94e9-33edf65c520f>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f798ceb6c70, execution_count=6 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f798ceb6790, raw_cell=\"# Drop outliers\n",
++      "min_price = 10\n",
++      "max_price = 350\n",
++      "idx..\" store_history=True silent=False shell_futures=True cell_id=c57054c7-72d5-471a-94e9-33edf65c520f> result=None>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
++     ]
++    }
++   ],
+    "source": [
+     "# Drop outliers\n",
+     "min_price = 10\n",
+@@ -730,7 +859,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "17990df4",
++   "id": "03caa760",
+    "metadata": {},
+    "source": [
+     "Note how we did not impute missing values. We will do that in the inference pipeline, so we will be able to handle missing values also in production."
+@@ -738,7 +867,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "09287f29",
++   "id": "3704337a",
+    "metadata": {},
+    "source": [
+     "5. Check with df.info() that all obvious problems have been solved"
+@@ -746,10 +875,27 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 12,
+-   "id": "b83b4970",
++   "execution_count": 7,
++   "id": "a1e7940c",
+    "metadata": {},
+    "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f79c0132ac0, raw_cell=\"df.info()\" store_history=True silent=False shell_futures=True cell_id=0a424e4a-1324-4365-a801-7574356bdde7>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+@@ -776,7 +922,18 @@
+       " 14  calculated_host_listings_count  19001 non-null  int64         \n",
+       " 15  availability_365                19001 non-null  int64         \n",
+       "dtypes: datetime64[ns](1), float64(3), int64(7), object(5)\n",
+-      "memory usage: 2.5+ MB\n"
++      "memory usage: 2.5+ MB\n",
++      "Error in callback <bound method _WandbInit._pause_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for post_run_cell), with arguments args (<ExecutionResult object at 7f79c0132e80, execution_count=7 error_before_exec=None error_in_exec=None info=<ExecutionInfo object at 7f79c0132ac0, raw_cell=\"df.info()\" store_history=True silent=False shell_futures=True cell_id=0a424e4a-1324-4365-a801-7574356bdde7> result=None>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_pause_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _pause_backend() takes 1 positional argument but 2 were given"
+      ]
+     }
+    ],
+@@ -786,7 +943,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "d727e697",
++   "id": "f9beced6",
+    "metadata": {},
+    "source": [
+     "6. Terminate the run by running `run.finish()`"
+@@ -794,10 +951,27 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 13,
+-   "id": "48b38586",
++   "execution_count": 8,
++   "id": "8f27601b",
+    "metadata": {},
+    "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Error in callback <bound method _WandbInit._resume_backend of <wandb.sdk.wandb_init._WandbInit object at 0x7f79c0132b20>> (for pre_run_cell), with arguments args (<ExecutionInfo object at 7f798ceb6cd0, raw_cell=\"run.finish()\" store_history=True silent=False shell_futures=True cell_id=92ce1965-5d57-4059-b713-18aa6820ca0d>,),kwargs {}:\n"
++     ]
++    },
++    {
++     "ename": "TypeError",
++     "evalue": "_resume_backend() takes 1 positional argument but 2 were given",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "\u001b[0;31mTypeError\u001b[0m: _resume_backend() takes 1 positional argument but 2 were given"
++     ]
++    },
+     {
+      "data": {
+       "text/html": [
+@@ -810,24 +984,10 @@
+      "metadata": {},
+      "output_type": "display_data"
+     },
+-    {
+-     "data": {
+-      "application/vnd.jupyter.widget-view+json": {
+-       "model_id": "0a45b778e49c4dfeb3cc16a0684831b0",
+-       "version_major": 2,
+-       "version_minor": 0
+-      },
+-      "text/plain": [
+-       "VBox(children=(Label(value='0.043 MB of 0.057 MB uploaded (0.000 MB deduped)\\r'), FloatProgress(value=0.748456…"
+-      ]
+-     },
+-     "metadata": {},
+-     "output_type": "display_data"
+-    },
+     {
+      "data": {
+       "text/html": [
+-       " View run <strong style=\"color:#cdcd00\">summer-galaxy-14</strong> at: <a href=\"https://wandb.ai/annyang1963/nyc_airbnb/runs/cl95qrqk\" target=\"_blank\">https://wandb.ai/annyang1963/nyc_airbnb/runs/cl95qrqk</a><br/>Synced 7 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)"
++       " View run <strong style=\"color:#cdcd00\">pious-thunder-5</strong> at: <a href=\"https://wandb.ai/wavywave/nyc_airbnb/runs/wlaassk8\" target=\"_blank\">https://wandb.ai/wavywave/nyc_airbnb/runs/wlaassk8</a><br/>Synced 7 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -839,7 +999,7 @@
+     {
+      "data": {
+       "text/html": [
+-       "Find logs at: <code>./wandb/run-20230412_183404-cl95qrqk/logs</code>"
++       "Find logs at: <code>./wandb/run-20240508_122934-wlaassk8/logs</code>"
+       ],
+       "text/plain": [
+        "<IPython.core.display.HTML object>"
+@@ -855,7 +1015,7 @@
+   },
+   {
+    "cell_type": "markdown",
+-   "id": "13f82b21",
++   "id": "643a4fc3",
+    "metadata": {},
+    "source": [
+     "7. Save the notebook."
+diff --git a/src/train_random_forest/conda.yml b/src/train_random_forest/conda.yml
+index 2335152..d3340b6 100644
+--- a/src/train_random_forest/conda.yml
++++ b/src/train_random_forest/conda.yml
+@@ -11,3 +11,4 @@ dependencies:
+   - pillow=8.1.2
+   - pip:
+       - wandb==0.13.9
++      - databricks_cli==0.8.7
+diff --git a/src/train_random_forest/run.py b/src/train_random_forest/run.py
+index cc35d9b..13fac52 100644
+--- a/src/train_random_forest/run.py
++++ b/src/train_random_forest/run.py
+@@ -73,8 +73,9 @@ def go(args):
+ 
+     ######################################
+     # Fit the pipeline sk_pipe by calling the .fit method on X_train and y_train
+-    # YOUR CODE HERE
+-    ######################################
++    # MY CODE call fit method and fit pipeline 
++    sk_pipe.fit(X_train, y_train)
++
+ 
+     # Compute r2 and MAE
+     logger.info("Scoring")
+@@ -95,11 +96,15 @@ def go(args):
+     ######################################
+     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
+     # HINT: use mlflow.sklearn.save_model
+-    signature = mlflow.models.infer_signature(X_val, y_pred)
++    export_path = "random_forest_dir"
++    signature = mlflow.models.infer_signature(X_val[processed_features], y_pred)
+     mlflow.sklearn.save_model(
+-        # YOUR CODE HERE
++        # MY CODE
++        sk_pipe,
++        export_path,
++        serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
+         signature = signature,
+-        input_example = X_train.iloc[:5]
++        input_example = X_val[processed_features].iloc[:2]
+     )
+     ######################################
+ 
+@@ -121,7 +126,8 @@ def go(args):
+     # Here we save variable r_squared under the "r2" key
+     run.summary['r2'] = r_squared
+     # Now save the variable mae under the key "mae".
+-    # YOUR CODE HERE
++    # MY CODE
++    run.summary['mae'] = mae
+     ######################################
+ 
+     # Upload to W&B the feture importance visualization
+@@ -164,7 +170,9 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
+     # 1 - A SimpleImputer(strategy="most_frequent") to impute missing values
+     # 2 - A OneHotEncoder() step to encode the variable
+     non_ordinal_categorical_preproc = make_pipeline(
+-        # YOUR CODE HERE
++        # MY CODE
++        SimpleImputer(strategy="most_frequent"),
++        OneHotEncoder()
+     )
+     ######################################
+ 
+@@ -227,7 +235,9 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
+ 
+     sk_pipe = Pipeline(
+         steps =[
+-        # YOUR CODE HERE
++        # MY CODE
++            ("preprocessor", preprocessor),
++            ("random_forest", random_forest),
+         ]
+     )
+ 

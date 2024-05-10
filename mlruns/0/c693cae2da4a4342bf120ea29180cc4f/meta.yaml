@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/c693cae2da4a4342bf120ea29180cc4f/artifacts
+end_time: 1715375434192
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c693cae2da4a4342bf120ea29180cc4f
+run_name: dapper-ram-817
+run_uuid: c693cae2da4a4342bf120ea29180cc4f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715375232753
+status: 3
+tags: []
+user_id: yahoo4173

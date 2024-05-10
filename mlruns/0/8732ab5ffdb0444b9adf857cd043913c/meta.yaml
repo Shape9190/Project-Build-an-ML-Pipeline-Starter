@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/8732ab5ffdb0444b9adf857cd043913c/artifacts
+end_time: 1715192448335
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 8732ab5ffdb0444b9adf857cd043913c
+run_name: mysterious-quail-63
+run_uuid: 8732ab5ffdb0444b9adf857cd043913c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715192298164
+status: 3
+tags: []
+user_id: yahoo4173

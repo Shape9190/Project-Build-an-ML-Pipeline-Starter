@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/b1720c4b1a414897a669f26e658ec823/artifacts
+end_time: 1715371616941
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: b1720c4b1a414897a669f26e658ec823
+run_name: resilient-snail-171
+run_uuid: b1720c4b1a414897a669f26e658ec823
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715371436796
+status: 3
+tags: []
+user_id: yahoo4173

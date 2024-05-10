@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/4d6b8f93a00d4fac9f27eb7d92096728/artifacts
+end_time: 1715375676004
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 4d6b8f93a00d4fac9f27eb7d92096728
+run_name: worried-asp-934
+run_uuid: 4d6b8f93a00d4fac9f27eb7d92096728
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715375564472
+status: 3
+tags: []
+user_id: yahoo4173

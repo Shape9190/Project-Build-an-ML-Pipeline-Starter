@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/d91d55934a504e7bb8edbd707aaee5e9/artifacts
+end_time: 1715295208817
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d91d55934a504e7bb8edbd707aaee5e9
+run_name: resilient-deer-497
+run_uuid: d91d55934a504e7bb8edbd707aaee5e9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715294995952
+status: 4
+tags: []
+user_id: yahoo4173

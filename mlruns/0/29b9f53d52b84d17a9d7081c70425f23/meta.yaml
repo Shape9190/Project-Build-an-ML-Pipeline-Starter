@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/29b9f53d52b84d17a9d7081c70425f23/artifacts
+end_time: 1715302809657
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 29b9f53d52b84d17a9d7081c70425f23
+run_name: unequaled-bee-417
+run_uuid: 29b9f53d52b84d17a9d7081c70425f23
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715302306617
+status: 3
+tags: []
+user_id: yahoo4173

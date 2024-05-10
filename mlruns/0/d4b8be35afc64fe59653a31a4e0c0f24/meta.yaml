@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/d4b8be35afc64fe59653a31a4e0c0f24/artifacts
+end_time: 1715370723674
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d4b8be35afc64fe59653a31a4e0c0f24
+run_name: angry-kite-532
+run_uuid: d4b8be35afc64fe59653a31a4e0c0f24
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715370590051
+status: 4
+tags: []
+user_id: yahoo4173

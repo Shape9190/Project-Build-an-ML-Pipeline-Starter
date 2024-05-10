@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/34f001fdfe1e4e33bbf286fbc20eadda/artifacts
+end_time: 1715194395599
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 34f001fdfe1e4e33bbf286fbc20eadda
+run_name: thundering-croc-448
+run_uuid: 34f001fdfe1e4e33bbf286fbc20eadda
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715194286269
+status: 3
+tags: []
+user_id: yahoo4173

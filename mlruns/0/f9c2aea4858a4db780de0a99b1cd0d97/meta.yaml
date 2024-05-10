@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/f9c2aea4858a4db780de0a99b1cd0d97/artifacts
+end_time: 1715290119166
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: f9c2aea4858a4db780de0a99b1cd0d97
+run_name: mysterious-seal-499
+run_uuid: f9c2aea4858a4db780de0a99b1cd0d97
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715290117442
+status: 3
+tags: []
+user_id: yahoo4173

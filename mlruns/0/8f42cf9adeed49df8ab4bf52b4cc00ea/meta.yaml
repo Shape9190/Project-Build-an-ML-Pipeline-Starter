@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/8f42cf9adeed49df8ab4bf52b4cc00ea/artifacts
+end_time: 1715217161139
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 8f42cf9adeed49df8ab4bf52b4cc00ea
+run_name: welcoming-fowl-935
+run_uuid: 8f42cf9adeed49df8ab4bf52b4cc00ea
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715217131097
+status: 4
+tags: []
+user_id: yahoo4173

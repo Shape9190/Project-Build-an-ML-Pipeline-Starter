@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/d9153631d415491ba88ed1189d03f91c/artifacts
+end_time: 1715217049840
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d9153631d415491ba88ed1189d03f91c
+run_name: blushing-toad-711
+run_uuid: d9153631d415491ba88ed1189d03f91c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715216923334
+status: 3
+tags: []
+user_id: yahoo4173

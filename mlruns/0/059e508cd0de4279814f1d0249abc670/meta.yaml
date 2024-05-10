@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/059e508cd0de4279814f1d0249abc670/artifacts
+end_time: 1715296321687
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 059e508cd0de4279814f1d0249abc670
+run_name: adorable-snail-291
+run_uuid: 059e508cd0de4279814f1d0249abc670
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715296248951
+status: 4
+tags: []
+user_id: yahoo4173

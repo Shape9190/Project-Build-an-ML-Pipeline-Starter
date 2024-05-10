@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/a396025507c44258af466b62fab28362/artifacts
+end_time: 1715288235196
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: a396025507c44258af466b62fab28362
+run_name: inquisitive-tern-430
+run_uuid: a396025507c44258af466b62fab28362
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715288152849
+status: 4
+tags: []
+user_id: yahoo4173

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/d1c2571b9dec492fbe692a8f744f7781/artifacts
+end_time: 1715286664352
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d1c2571b9dec492fbe692a8f744f7781
+run_name: nimble-sloth-786
+run_uuid: d1c2571b9dec492fbe692a8f744f7781
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715286580150
+status: 4
+tags: []
+user_id: yahoo4173

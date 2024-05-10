@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/4822e5ce23da445e8910cdc794c0375b/artifacts
+end_time: 1715290876088
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 4822e5ce23da445e8910cdc794c0375b
+run_name: glamorous-smelt-127
+run_uuid: 4822e5ce23da445e8910cdc794c0375b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715290583328
+status: 3
+tags: []
+user_id: yahoo4173

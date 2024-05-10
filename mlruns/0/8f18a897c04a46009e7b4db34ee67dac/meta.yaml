@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/8f18a897c04a46009e7b4db34ee67dac/artifacts
+end_time: 1715209244540
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 8f18a897c04a46009e7b4db34ee67dac
+run_name: bedecked-shrew-552
+run_uuid: 8f18a897c04a46009e7b4db34ee67dac
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715209226178
+status: 4
+tags: []
+user_id: yahoo4173

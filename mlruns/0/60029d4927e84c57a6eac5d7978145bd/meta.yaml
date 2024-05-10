@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/60029d4927e84c57a6eac5d7978145bd/artifacts
+end_time: 1715288235434
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 60029d4927e84c57a6eac5d7978145bd
+run_name: marvelous-ram-171
+run_uuid: 60029d4927e84c57a6eac5d7978145bd
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715288151237
+status: 4
+tags: []
+user_id: yahoo4173

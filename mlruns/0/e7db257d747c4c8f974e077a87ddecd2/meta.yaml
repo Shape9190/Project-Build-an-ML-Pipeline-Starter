@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/e7db257d747c4c8f974e077a87ddecd2/artifacts
+end_time: 1715199035891
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e7db257d747c4c8f974e077a87ddecd2
+run_name: powerful-cow-87
+run_uuid: e7db257d747c4c8f974e077a87ddecd2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715199018393
+status: 3
+tags: []
+user_id: yahoo4173

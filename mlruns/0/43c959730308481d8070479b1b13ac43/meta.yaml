@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/43c959730308481d8070479b1b13ac43/artifacts
+end_time: 1715197893314
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 43c959730308481d8070479b1b13ac43
+run_name: secretive-smelt-55
+run_uuid: 43c959730308481d8070479b1b13ac43
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715197867998
+status: 4
+tags: []
+user_id: yahoo4173

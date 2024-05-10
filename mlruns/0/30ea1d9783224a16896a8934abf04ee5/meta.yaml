@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/30ea1d9783224a16896a8934abf04ee5/artifacts
+end_time: 1715198574291
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 30ea1d9783224a16896a8934abf04ee5
+run_name: upset-snake-120
+run_uuid: 30ea1d9783224a16896a8934abf04ee5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715198571684
+status: 4
+tags: []
+user_id: yahoo4173

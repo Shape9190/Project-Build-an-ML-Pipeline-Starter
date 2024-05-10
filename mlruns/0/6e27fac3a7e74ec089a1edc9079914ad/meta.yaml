@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/6e27fac3a7e74ec089a1edc9079914ad/artifacts
+end_time: 1715300652737
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6e27fac3a7e74ec089a1edc9079914ad
+run_name: vaunted-duck-136
+run_uuid: 6e27fac3a7e74ec089a1edc9079914ad
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715300649811
+status: 4
+tags: []
+user_id: yahoo4173

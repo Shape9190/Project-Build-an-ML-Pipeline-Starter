@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/90d18a2b52954421a54f8e5903dc23a4/artifacts
+end_time: 1715215175607
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 90d18a2b52954421a54f8e5903dc23a4
+run_name: bemused-gnat-61
+run_uuid: 90d18a2b52954421a54f8e5903dc23a4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715215166563
+status: 4
+tags: []
+user_id: yahoo4173

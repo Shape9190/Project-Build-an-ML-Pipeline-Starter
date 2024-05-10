@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/7a843a4e899f4bc28f4681f5182872f6/artifacts
+end_time: 1715216272970
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7a843a4e899f4bc28f4681f5182872f6
+run_name: nimble-snake-425
+run_uuid: 7a843a4e899f4bc28f4681f5182872f6
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715216263480
+status: 4
+tags: []
+user_id: yahoo4173

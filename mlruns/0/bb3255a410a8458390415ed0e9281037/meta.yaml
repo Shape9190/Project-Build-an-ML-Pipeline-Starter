@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/bb3255a410a8458390415ed0e9281037/artifacts
+end_time: 1715290875912
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: bb3255a410a8458390415ed0e9281037
+run_name: kindly-elk-952
+run_uuid: bb3255a410a8458390415ed0e9281037
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715290598396
+status: 3
+tags: []
+user_id: yahoo4173

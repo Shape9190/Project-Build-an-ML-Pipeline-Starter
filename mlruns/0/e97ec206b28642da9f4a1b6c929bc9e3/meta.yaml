@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/e97ec206b28642da9f4a1b6c929bc9e3/artifacts
+end_time: 1715294100287
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e97ec206b28642da9f4a1b6c929bc9e3
+run_name: gifted-fawn-257
+run_uuid: e97ec206b28642da9f4a1b6c929bc9e3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715294098081
+status: 4
+tags: []
+user_id: yahoo4173

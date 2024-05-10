@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/7a5b8e2f59bc4048b399d39b05beec36/artifacts
+end_time: 1715215175836
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7a5b8e2f59bc4048b399d39b05beec36
+run_name: valuable-slug-790
+run_uuid: 7a5b8e2f59bc4048b399d39b05beec36
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715215164928
+status: 4
+tags: []
+user_id: yahoo4173

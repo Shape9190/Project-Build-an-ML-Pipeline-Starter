@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/2815c5acbec040408086687f35261e3b/artifacts
+end_time: 1715192448586
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2815c5acbec040408086687f35261e3b
+run_name: victorious-worm-251
+run_uuid: 2815c5acbec040408086687f35261e3b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715192048067
+status: 3
+tags: []
+user_id: yahoo4173

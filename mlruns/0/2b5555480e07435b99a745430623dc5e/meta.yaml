@@ -1,0 +1,15 @@
+artifact_uri: file:///home/yahoo4173/Project-Build-an-ML-Pipeline-Starter/mlruns/0/2b5555480e07435b99a745430623dc5e/artifacts
+end_time: 1715302049035
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2b5555480e07435b99a745430623dc5e
+run_name: fun-snipe-154
+run_uuid: 2b5555480e07435b99a745430623dc5e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1715301977313
+status: 4
+tags: []
+user_id: yahoo4173
